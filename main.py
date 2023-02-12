@@ -4,6 +4,7 @@ import creds
 import coins
 from datetime import date, timedelta
 import uuid
+import coin_market_cap as cmc
 
 crypto_coins = coins.crypto_coins
 today = date.today()
@@ -78,8 +79,18 @@ def transform() -> pd.DataFrame:
     # Add unique row id
     df['uuid'] = [str(uuid.uuid4()) for i in range(len(df))]
 
-    # Reorder columns so uuid comes first
-    reordered_df = df.iloc[:, [8, 0, 1, 2, 3, 4, 5, 6, 7]]
+    return df
+
+
+def join():
+    right_df = cmc.coin_market_cap_df
+    left_df = transform()
+
+    # Join data in from coin_market_cap
+    joined_df = left_df.merge(right_df.rename({'symbol': 'asset_id_base'}, axis=1), on='asset_id_base', how='left')
+
+    # Reorder columns so uuid comes first, and name comes after the symbol
+    reordered_df = joined_df.iloc[:, [8, 0, 9, 1, 2, 3, 4, 5, 6, 7, 10, 11]]
 
     return reordered_df
 
@@ -95,8 +106,8 @@ def transform() -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-    print(transform())
-    print(transform().dtypes)
+    print(join())
+    print(join().dtypes)
 
 """
 Stuff to add:

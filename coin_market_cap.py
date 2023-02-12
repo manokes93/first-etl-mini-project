@@ -27,7 +27,7 @@ def extract() -> list:
     return market_cap
 
 
-def make_df():
+def make_df() -> pd.DataFrame:
     data = extract()
 
     # Set row lists
@@ -50,4 +50,14 @@ def make_df():
     return df
 
 
-make_df()
+def transform() -> pd.DataFrame:
+    df = make_df()
+
+    # Convert number columns from string to float.
+    number_columns = df[df.columns[2:]]
+    df[number_columns.columns] = number_columns.apply(pd.to_numeric).round(2)
+
+    return df
+
+
+coin_market_cap_df = transform()
