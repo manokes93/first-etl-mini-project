@@ -106,12 +106,9 @@ Stuff to add:
 -if connection fails, automatically retry a few times.
 -if dataframe is empty, make it fail.
 -if the time_period_start and time_period_end is not yesterday, fail it.
+-Use chatGPT to flesh out ReadMe file
 """
 
 """
-name
-symbol
-volume_24h
-market_cap
 Backfill page: https://coinmarketcap.com/currencies/bitcoin/historical-data/
 """
