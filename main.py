@@ -107,3 +107,11 @@ Stuff to add:
 -if dataframe is empty, make it fail.
 -if the time_period_start and time_period_end is not yesterday, fail it.
 """
+
+"""
+name
+symbol
+volume_24h
+market_cap
+Backfill page: https://coinmarketcap.com/currencies/bitcoin/historical-data/
+"""
