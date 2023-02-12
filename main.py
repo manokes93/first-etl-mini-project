@@ -3,7 +3,7 @@ import pandas as pd
 import creds
 import coins
 from datetime import date, timedelta
-
+import uuid
 
 crypto_coins = coins.crypto_coins
 today = date.today()
@@ -83,7 +83,13 @@ def transform() -> pd.DataFrame:
     date_columns = df[df.columns[2:4]]
     df[date_columns.columns] = date_columns.apply(pd.to_datetime)
 
-    return df
+    # Add unique row id
+    df['uuid'] = [str(uuid.uuid4()) for i in range(len(df))]
+
+    # Reorder columns so uuid comes first
+    reordered_df = df.iloc[:, [8, 0, 1, 2, 3, 4, 5, 6, 7]]
+
+    return reordered_df
 
 # def load():
 #     df = transform()
@@ -98,6 +104,7 @@ def transform() -> pd.DataFrame:
 
 if __name__ == '__main__':
     print(transform())
+    print(transform().dtypes)
 
 """
 Stuff to add:
@@ -106,6 +113,5 @@ Stuff to add:
 -If the crypto ticker is not found, continue, but print an error.
 -if connection fails, automatically retry a few times.
 -if dataframe is empty, make it fail.
--create primary key in transform step
 -if the time_period_start and time_period_end is not yesterday, fail it.
 """
