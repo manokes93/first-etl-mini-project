@@ -9,7 +9,8 @@ crypto_coins = coins.crypto_coins
 today = date.today()
 yesterday = today - timedelta(days=1)
 
-def extract():
+
+def extract() -> list:
     # Extracts data from the API.
     # This response does not return the coin and currency, so the coin gets added into the exchange_rates list object.
     # The currency gets taken care of during the make_df function. This is because I only care about USD.
@@ -27,7 +28,8 @@ def extract():
         exchange_rates.append(response.json())
     return exchange_rates
 
-def make_df():
+
+def make_df() -> pd.DataFrame:
     # Creates a pandas dataframe
     # Not including the following columns: time_open, time_close
     data = extract()
@@ -70,10 +72,9 @@ def make_df():
     df = pd.DataFrame(rows)
     return df
 
-dataframe = make_df()
 
-def transform():
-    df = dataframe
+def transform() -> pd.DataFrame:
+    df = make_df()
     # Convert number columns from string to float.
     number_columns = df[df.columns[4:]]
     df[number_columns.columns] = number_columns.apply(pd.to_numeric).round(2)
@@ -94,6 +95,7 @@ def transform():
 #         credentials=""
 #     )
 
+
 if __name__ == '__main__':
     print(transform())
 
@@ -101,11 +103,9 @@ if __name__ == '__main__':
 Stuff to add:
 -Make a log file
 -If any values are null, fail it.
--If the crypto ticker isnt found, continue, but print an error.
+-If the crypto ticker is not found, continue, but print an error.
 -if connection fails, automatically retry a few times.
 -if dataframe is empty, make it fail.
 -create primary key in transform step
 -if the time_period_start and time_period_end is not yesterday, fail it.
 """
-
-
