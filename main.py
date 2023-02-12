@@ -34,40 +34,32 @@ def make_df() -> pd.DataFrame:
     # Not including the following columns: time_open, time_close
     data = extract()
 
-    asset_id_base = []
-    asset_id_quote = []
-    time_period_start = []
-    time_period_end = []
-    rate_open = []
-    rate_high = []
-    rate_low = []
-    rate_close = []
+    # Set row lists
+    rows = {
+        'asset_id_base': [],
+        'asset_id_quote': [],
+        'time_period_start': [],
+        'time_period_end': [],
+        'rate_open': [],
+        'rate_high': [],
+        'rate_low': [],
+        'rate_close': []
+    }
 
     # Add data to lists
     for i in data:
         if type(i) == str:
-            asset_id_base.append(i)
-            asset_id_quote.append('USD')
+            rows['asset_id_base'].append(i)
+            rows['asset_id_quote'].append('USD')
         elif type(i) == list:
-            time_period_start.append(i[0]["time_period_start"])
-            time_period_end.append(i[0]["time_period_end"])
-            rate_open.append(i[0]["rate_open"])
-            rate_high.append(i[0]["rate_high"])
-            rate_low.append(i[0]["rate_low"])
-            rate_close.append(i[0]["rate_close"])
+            rows['time_period_start'].append(i[0]["time_period_start"])
+            rows['time_period_end'].append(i[0]["time_period_end"])
+            rows['rate_open'].append(i[0]["rate_open"])
+            rows['rate_high'].append(i[0]["rate_high"])
+            rows['rate_low'].append(i[0]["rate_low"])
+            rows['rate_close'].append(i[0]["rate_close"])
         else:
             print('Error in dataframe creation: Invalid data type in extract.')
-    # Set the lists as the rows
-    rows = {
-        'asset_id_base': asset_id_base,
-        'asset_id_quote': asset_id_quote,
-        'time_period_start': time_period_start,
-        'time_period_end': time_period_end,
-        'rate_open': rate_open,
-        'rate_high': rate_high,
-        'rate_low': rate_low,
-        'rate_close': rate_close
-    }
 
     df = pd.DataFrame(rows)
     return df
