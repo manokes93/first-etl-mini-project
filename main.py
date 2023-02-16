@@ -104,10 +104,14 @@ def make_df() -> pd.DataFrame:
     df = pd.DataFrame(rows)
 
     # Check dataframe for nulls and fail the pull if any nulls are found.
-    if df.isnull.values.any():
+    if df.isnull().values.any():
         logger.error('Null values were found in the dataframe for coin api. Script terminated.')
         raise Exception('Null values were found.')
-    return df
+    elif df.empty:
+        logger.error('Dataframe is empty. Script terminated.')
+        raise Exception('df is empty.')
+    else:
+        return df
 
 
 def transform() -> pd.DataFrame:

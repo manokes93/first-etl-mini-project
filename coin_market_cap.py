@@ -52,9 +52,10 @@ def extract() -> list:
             # Get data for the coin up top 3 times.
             try:
                 parameters['symbol'] = coin
-                response = requests.get(url, params=parameters, headers=headers).json()
+                response = requests.get(url, params=parameters, headers=headers)
                 if response.status_code == 200:
-                    market_cap.append(response['data'])
+                    response_json = response.json()
+                    market_cap.append(response_json['data'])
                     break
                 else:
                     logger.warning(f'Error code {response.status_code} in coinmarketcap for coin {coin}: {response.reason}')
@@ -86,10 +87,14 @@ def make_df() -> pd.DataFrame:
                 rows['market_cap'].append(item['quote']['USD']['market_cap'])
 
     df = pd.DataFrame(rows)
-    if df.isnull.values.any():
+    if df.isnull().values.any():
         logger.error('Null values were found in the dataframe for coinmarketcap api. Script terminated.')
         raise Exception('Null values were found.')
-    return df
+    elif df.empty:
+        logger.error('Dataframe is empty. Script terminated.')
+        raise Exception('df is empty.')
+    else:
+        return df
 
 
 def transform() -> pd.DataFrame:
