@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import Timeout
 import pandas as pd
 import creds
 import coins
@@ -9,7 +10,7 @@ import logging
 """""""""""""""""""""
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.WARNING)
 
 formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
 
@@ -41,12 +42,27 @@ parameters = {
 
 
 def extract() -> list:
+
+    max_retries = 3
+
     market_cap = []
 
     for coin in crypto_coins:
-        parameters['symbol'] = coin
-        response = requests.get(url, params=parameters, headers=headers).json()
-        market_cap.append(response['data'])
+        for i in range(max_retries):
+            # Get data for the coin up top 3 times.
+            try:
+                parameters['symbol'] = coin
+                response = requests.get(url, params=parameters, headers=headers).json()
+                if response.status_code == 200:
+                    market_cap.append(response['data'])
+                    break
+                else:
+                    logger.warning(f'Error code {response.status_code} in coinmarketcap for coin {coin}: {response.reason}')
+            except Timeout:
+                logger.warning(f'Timeout error in coinmarketcap api call on coin: {coin}')
+        else:
+            logger.error('All retries failed.')
+            raise Exception('Extract failed.')
     return market_cap
 
 
@@ -70,6 +86,9 @@ def make_df() -> pd.DataFrame:
                 rows['market_cap'].append(item['quote']['USD']['market_cap'])
 
     df = pd.DataFrame(rows)
+    if df.isnull.values.any():
+        logger.error('Null values were found in the dataframe for coinmarketcap api. Script terminated.')
+        raise Exception('Null values were found.')
     return df
 
 

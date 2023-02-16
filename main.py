@@ -59,7 +59,7 @@ def extract() -> list:
                     exchange_rates.append(response.json())
                     break
                 else:
-                    logger.warning(f'Error code {response.status_code} for coin {coin}: {response.reason}')
+                    logger.warning(f'Error code {response.status_code} in coin api for coin {coin}: {response.reason}')
             except Timeout:
                 logger.warning(f'Timeout error in coin api call on coin: {coin}')
         else:
