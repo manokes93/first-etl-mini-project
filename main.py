@@ -1,15 +1,38 @@
 import requests
+from requests.exceptions import Timeout
 import pandas as pd
 import creds
 import coins
 from datetime import date, timedelta
 import uuid
 import coin_market_cap as cmc
+import logging
+
+"""""""""""""""""""""
+******LOGGING*****
+"""""""""""""""""""""
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
+
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+
+file_handler = logging.FileHandler('failures.log')
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+"""""""""""""""""""""
+******START*****
+"""""""""""""""""""""
 
 crypto_coins = coins.crypto_coins
 today = date.today()
 yesterday = today - timedelta(days=1)
-
 
 def extract() -> list:
     # Extracts data from the API.
@@ -17,16 +40,31 @@ def extract() -> list:
     # The currency gets taken care of during the make_df function. This is because I only care about USD.
     # The coin api only allows 100 requests daily in the free tier.
 
+    max_retries = 3
+
     exchange_rates = []
+
     for coin in crypto_coins:
         # This is the url to use to get historical data.
         # This has 1DAY already as the periodicity argument.
         # The output returns midnight of yesterday to 11:59pm of that same day.
         url = f'https://rest.coinapi.io/v1/exchangerate/{coin}/USD/history?period_id=1DAY&time_start={yesterday}T00:00:00&time_end={today}T00:00:00'
         headers = {'X-CoinAPI-Key': creds.api_key}
-        response = requests.get(url, headers=headers)
-        exchange_rates.append(coin)
-        exchange_rates.append(response.json())
+        for i in range(max_retries):
+            # Get data for the coin up top 3 times.
+            try:
+                response = requests.get(url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    exchange_rates.append(coin)
+                    exchange_rates.append(response.json())
+                    break
+                else:
+                    logger.warning(f'Error code {response.status_code} for coin {coin}: {response.reason}')
+            except Timeout:
+                logger.warning(f'Timeout error in coin api call on coin: {coin}')
+        else:
+            logger.error('All retries failed.')
+            raise Exception('Extract failed.')
     return exchange_rates
 
 
@@ -60,9 +98,15 @@ def make_df() -> pd.DataFrame:
             rows['rate_low'].append(i[0]["rate_low"])
             rows['rate_close'].append(i[0]["rate_close"])
         else:
-            print('Error in dataframe creation: Invalid data type in extract.')
+            logger.error('Error in dataframe creation: Invalid data type in extract.')
+            raise Exception
 
     df = pd.DataFrame(rows)
+
+    # Check dataframe for nulls and fail the pull if any nulls are found.
+    if df.isnull.values.any():
+        logger.error('Null values were found in the dataframe for coin api. Script terminated.')
+        raise Exception('Null values were found.')
     return df
 
 
@@ -111,12 +155,6 @@ if __name__ == '__main__':
 
 """
 Stuff to add:
--Make a log file
--If any values are null, fail it.
--If the crypto ticker is not found, continue, but print an error.
--if connection fails, automatically retry a few times.
--if dataframe is empty, make it fail.
--if the time_period_start and time_period_end is not yesterday, fail it.
 -Use chatGPT to flesh out ReadMe file
 """
 
