@@ -7,6 +7,7 @@ from datetime import date, timedelta
 import uuid
 import coin_market_cap as cmc
 import logging
+from google.cloud import bigquery
 
 """""""""""""""""""""
 ******LOGGING*****
@@ -33,6 +34,7 @@ logger.addHandler(stream_handler)
 crypto_coins = coins.crypto_coins
 today = date.today()
 yesterday = today - timedelta(days=1)
+
 
 def extract() -> list:
     # Extracts data from the API.
@@ -78,7 +80,6 @@ def make_df() -> pd.DataFrame:
         'asset_id_base': [],
         'asset_id_quote': [],
         'time_period_start': [],
-        'time_period_end': [],
         'rate_open': [],
         'rate_high': [],
         'rate_low': [],
@@ -92,7 +93,6 @@ def make_df() -> pd.DataFrame:
             rows['asset_id_quote'].append('USD')
         elif type(i) == list:
             rows['time_period_start'].append(i[0]["time_period_start"])
-            rows['time_period_end'].append(i[0]["time_period_end"])
             rows['rate_open'].append(i[0]["rate_open"])
             rows['rate_high'].append(i[0]["rate_high"])
             rows['rate_low'].append(i[0]["rate_low"])
@@ -117,12 +117,14 @@ def make_df() -> pd.DataFrame:
 def transform() -> pd.DataFrame:
     df = make_df()
     # Convert number columns from string to float.
-    number_columns = df[df.columns[4:]]
+    number_columns = df[df.columns[3:]]
     df[number_columns.columns] = number_columns.apply(pd.to_numeric).round(2)
 
     # Convert time_period columns from string to date
-    date_columns = df[df.columns[2:4]]
-    df[date_columns.columns] = date_columns.apply(pd.to_datetime)
+    df['Date'] = pd.to_datetime(df['time_period_start'], format='%Y-%m-%d')
+
+    # Drop time_period_start
+    df.drop(columns=['time_period_start'], inplace=True)
 
     # Add unique row id
     df['uuid'] = [str(uuid.uuid4()) for i in range(len(df))]
@@ -138,22 +140,35 @@ def join():
     joined_df = left_df.merge(right_df.rename({'symbol': 'asset_id_base'}, axis=1), on='asset_id_base', how='left')
 
     # Reorder columns so uuid comes first, and name comes after the symbol
-    reordered_df = joined_df.iloc[:, [8, 0, 9, 1, 2, 3, 4, 5, 6, 7, 10, 11]]
+    reordered_df = joined_df.reindex(columns=[
+        'uuid',
+        'asset_id_base',
+        'name',
+        'asset_id_quote',
+        'Date',
+        'rate_open',
+        'rate_high',
+        'rate_low',
+        'rate_close',
+        'Volume',
+        'Market_Cap'
+    ])
 
     return reordered_df
 
-# def load():
-#     df = transform()
-#
-#     df.to_gbq(
-#         destination_table="",
-#         project_id="",
-#         table_schema=,
-#         credentials=""
-#     )
+
+def load():
+    df = join()
+
+    # set up the BigQuery credentials and project ID
+    project_id = 'your-project-id'
+    client = bigquery.Client()
+    table_id = 'your-project-id.your_dataset.your_table'
+    df.to_gbq(table_id, project_id=project_id, if_exists='append', credentials=client.credentials)
 
 
 if __name__ == '__main__':
+    load()
     print(join())
     print(join().dtypes)
 

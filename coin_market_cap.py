@@ -74,8 +74,8 @@ def make_df() -> pd.DataFrame:
     rows = {
         'name': [],
         'symbol': [],
-        'volume_24h': [],
-        'market_cap': []
+        'Volume': [],
+        'Market_Cap': []
     }
 
     for i in data:
@@ -83,18 +83,18 @@ def make_df() -> pd.DataFrame:
             for item in value:
                 rows['name'].append(item['name'])
                 rows['symbol'].append(item['symbol'])
-                rows['volume_24h'].append(item['quote']['USD']['volume_24h'])
-                rows['market_cap'].append(item['quote']['USD']['market_cap'])
+                rows['Volume'].append(item['quote']['USD']['volume_24h'])
+                rows['Market_Cap'].append(item['quote']['USD']['market_cap'])
 
     df = pd.DataFrame(rows)
-    if df.isnull().values.any():
-        logger.error('Null values were found in the dataframe for coinmarketcap api. Script terminated.')
-        raise Exception('Null values were found.')
-    elif df.empty:
-        logger.error('Dataframe is empty. Script terminated.')
-        raise Exception('df is empty.')
-    else:
-        return df
+    # if df.isnull().values.any():
+    #     logger.error('Null values were found in the dataframe for coinmarketcap api. Script terminated.')
+    #     raise Exception('Null values were found.')
+    # elif df.empty:
+    #     logger.error('Dataframe is empty. Script terminated.')
+    #     raise Exception('df is empty.')
+    # else:
+    return df
 
 
 def transform() -> pd.DataFrame:

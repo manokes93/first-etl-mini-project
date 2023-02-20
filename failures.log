@@ -1,0 +1,10 @@
+2023-02-18 21:17:41,544:ERROR:Null values were found in the dataframe for coinmarketcap api. Script terminated.
+2023-02-18 21:18:37,239:ERROR:Null values were found in the dataframe for coinmarketcap api. Script terminated.
+2023-02-18 21:35:22,617:WARNING:Error code 429 in coin api for coin BNB: Too Many Requests
+2023-02-18 21:35:22,752:WARNING:Error code 429 in coin api for coin BNB: Too Many Requests
+2023-02-18 21:35:22,859:WARNING:Error code 429 in coin api for coin BNB: Too Many Requests
+2023-02-18 21:35:22,859:ERROR:All retries failed.
+2023-02-19 20:15:05,988:WARNING:Error code 429 in coin api for coin BTC: Too Many Requests
+2023-02-19 20:15:06,134:WARNING:Error code 429 in coin api for coin BTC: Too Many Requests
+2023-02-19 20:15:06,376:WARNING:Error code 429 in coin api for coin BTC: Too Many Requests
+2023-02-19 20:15:06,376:ERROR:All retries failed.
