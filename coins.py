@@ -1,16 +1,13 @@
 crypto_coins = [
     'BTC',
-    'ETH'
+    'ETH',
+    'BNB',
+    'XRP',
+    'ADA',
+    'DOGE',
+    'MATIC',
+    'DOT',
+    'LTC',
+    'TRX',
+    'AVAX'
 ]
-
-# 'BTC',
-# 'ETH',
-# 'BNB',
-# 'XRP',
-# 'ADA',
-# 'DOGE',
-# 'MATIC',
-# 'DOT',
-# 'LTC',
-# 'TRX',
-# 'AVAX'

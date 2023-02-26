@@ -5,9 +5,7 @@ import creds
 import coins
 import logging
 
-"""""""""""""""""""""
-******LOGGING*****
-"""""""""""""""""""""
+# Logging setup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -23,9 +21,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
-"""""""""""""""""""""
-******START*****
-"""""""""""""""""""""
+# ETL start
 
 crypto_coins = coins.crypto_coins
 
@@ -42,13 +38,10 @@ parameters = {
 
 
 def extract() -> list:
-
-    max_retries = 3
-
     market_cap = []
 
     for coin in crypto_coins:
-        for i in range(max_retries):
+        for i in range(3):
             # Get data for the coin up top 3 times.
             try:
                 parameters['symbol'] = coin
@@ -87,13 +80,6 @@ def make_df() -> pd.DataFrame:
                 rows['Market_Cap'].append(item['quote']['USD']['market_cap'])
 
     df = pd.DataFrame(rows)
-    # if df.isnull().values.any():
-    #     logger.error('Null values were found in the dataframe for coinmarketcap api. Script terminated.')
-    #     raise Exception('Null values were found.')
-    # elif df.empty:
-    #     logger.error('Dataframe is empty. Script terminated.')
-    #     raise Exception('df is empty.')
-    # else:
     return df
 
 
@@ -102,8 +88,9 @@ def transform() -> pd.DataFrame:
 
     # Convert number columns from string to float.
     number_columns = df[df.columns[2:]]
-    df[number_columns.columns] = number_columns.apply(pd.to_numeric).round(2)
+    df[number_columns.columns] = number_columns.astype(float).round(2)
 
+    print('Created coin_market_cap dataframe')
     return df
 
 

@@ -1,4 +1,5 @@
 import requests
+import snowflake.connector
 from requests.exceptions import Timeout
 import pandas as pd
 import creds
@@ -7,11 +8,10 @@ from datetime import date, timedelta
 import uuid
 import coin_market_cap as cmc
 import logging
-from google.cloud import bigquery
+import snowflake.connector
+from snowflake.connector.pandas_tools import write_pandas
 
-"""""""""""""""""""""
-******LOGGING*****
-"""""""""""""""""""""
+# Logging setup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -27,9 +27,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
-"""""""""""""""""""""
-******START*****
-"""""""""""""""""""""
+# ETL start
 
 crypto_coins = coins.crypto_coins
 today = date.today()
@@ -118,10 +116,10 @@ def transform() -> pd.DataFrame:
     df = make_df()
     # Convert number columns from string to float.
     number_columns = df[df.columns[3:]]
-    df[number_columns.columns] = number_columns.apply(pd.to_numeric).round(2)
+    df[number_columns.columns] = number_columns.astype(float).round(2)
 
     # Convert time_period columns from string to date
-    df['Date'] = pd.to_datetime(df['time_period_start'], format='%Y-%m-%d')
+    df['Date'] = pd.to_datetime(df['time_period_start'], format='%Y-%m-%d').dt.date
 
     # Drop time_period_start
     df.drop(columns=['time_period_start'], inplace=True)
@@ -129,6 +127,7 @@ def transform() -> pd.DataFrame:
     # Add unique row id
     df['uuid'] = [str(uuid.uuid4()) for i in range(len(df))]
 
+    print('Created coinapi dataframe.')
     return df
 
 
@@ -154,29 +153,34 @@ def join():
         'Market_Cap'
     ])
 
+    print('Both dataframes are joined.')
     return reordered_df
 
 
 def load():
+
+    # Call the dataframe
     df = join()
 
-    # set up the BigQuery credentials and project ID
-    project_id = 'your-project-id'
-    client = bigquery.Client()
-    table_id = 'your-project-id.your_dataset.your_table'
-    df.to_gbq(table_id, project_id=project_id, if_exists='append', credentials=client.credentials)
+    # Drop the index and make columns uppercase
+    df.reset_index(drop=True, inplace=True)
+    df.columns = df.columns.str.upper()
+
+    # Establish snowflake connection
+    cnn = snowflake.connector.connect(
+        user=creds.snow_user,
+        password=creds.snow_password,
+        account=creds.snow_account,
+        warehouse=creds.snow_warehouse,
+        database=creds.snow_database,
+        schema=creds.snow_schema
+    )
+    success, nchunks, nrows, output = write_pandas(cnn, df, 'OHLCV')
+    print(str(success) + ', ' + str(nchunks) + ', ' + str(nrows))
+
+    cnn.close()
+    print('Upload to snowflake done.')
 
 
 if __name__ == '__main__':
     load()
-    print(join())
-    print(join().dtypes)
-
-"""
-Stuff to add:
--Use chatGPT to flesh out ReadMe file
-"""
-
-"""
-Backfill page: https://coinmarketcap.com/currencies/bitcoin/historical-data/
-"""
