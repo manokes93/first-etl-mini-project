@@ -10,6 +10,7 @@ import coin_market_cap as cmc
 import logging
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
+from snowflake.connector.errors import OperationalError, ProgrammingError
 
 # Logging setup
 
@@ -40,17 +41,16 @@ def extract() -> list:
     # The currency gets taken care of during the make_df function. This is because I only care about USD.
     # The coin api only allows 100 requests daily in the free tier.
 
-    max_retries = 3
-
     exchange_rates = []
 
     for coin in crypto_coins:
         # This is the url to use to get historical data.
         # This has 1DAY already as the periodicity argument.
         # The output returns midnight of yesterday to 11:59pm of that same day.
-        url = f'https://rest.coinapi.io/v1/exchangerate/{coin}/USD/history?period_id=1DAY&time_start={yesterday}T00:00:00&time_end={today}T00:00:00'
+        url = f'https://rest.coinapi.io/v1/exchangerate/{coin}/USD/history?period_id=1DAY&time_start={yesterday}' \
+              f'T00:00:00&time_end={today}T00:00:00'
         headers = {'X-CoinAPI-Key': creds.api_key}
-        for i in range(max_retries):
+        for i in range(3):
             # Get data for the coin up top 3 times.
             try:
                 response = requests.get(url, headers=headers, timeout=10)
@@ -97,7 +97,7 @@ def make_df() -> pd.DataFrame:
             rows['rate_close'].append(i[0]["rate_close"])
         else:
             logger.error('Error in dataframe creation: Invalid data type in extract.')
-            raise Exception
+            raise Exception('Invalid data type in extract.')
 
     df = pd.DataFrame(rows)
 
@@ -125,7 +125,7 @@ def transform() -> pd.DataFrame:
     df.drop(columns=['time_period_start'], inplace=True)
 
     # Add unique row id
-    df['uuid'] = [str(uuid.uuid4()) for i in range(len(df))]
+    df['uuid'] = [str(uuid.uuid4()) for _ in range(len(df))]
 
     print('Created coinapi dataframe.')
     return df
@@ -175,11 +175,19 @@ def load():
         database=creds.snow_database,
         schema=creds.snow_schema
     )
-    success, nchunks, nrows, output = write_pandas(cnn, df, 'OHLCV')
-    print(str(success) + ', ' + str(nchunks) + ', ' + str(nrows))
 
-    cnn.close()
-    print('Upload to snowflake done.')
+    try:
+        success, nchunks, nrows, output = write_pandas(cnn, df, 'OHLCV')
+        print(str(success) + ', ' + str(nchunks) + ', ' + str(nrows))
+        print('Upload to snowflake done.')
+    except OperationalError as e:
+        logger.error(f'Snowflake connection failed because of operational error: {e}')
+    except ProgrammingError as e:
+        print(f'Snowflake connection failed because of programming error: {e}')
+    except Exception as e:
+        print(f'Snowflake connection failed because of unexpected error: {e}')
+    finally:
+        cnn.close()
 
 
 if __name__ == '__main__':
