@@ -1,5 +1,4 @@
 import requests
-import snowflake.connector
 from requests.exceptions import Timeout
 import pandas as pd
 import creds
