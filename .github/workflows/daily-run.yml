@@ -1,8 +1,8 @@
 name: Daily Run
 
-on:
-  push:
-    - cron: '0 0 7 * * ?' # Runs every day at 7am
+#on:
+#  push:
+#    - cron: '0 0 7 * * ?' # Runs every day at 7am
 
 env:
   api_key: ${{ secrets.API_KEY }}
