@@ -1,9 +1,9 @@
 import requests
 from requests.exceptions import Timeout
 import pandas as pd
-import creds
 import coins
 import logging
+import os
 
 # Logging setup
 
@@ -25,11 +25,13 @@ logger.addHandler(stream_handler)
 
 crypto_coins = coins.crypto_coins
 
+cap_api_key = os.environ['cap_api_key']
+
 url = f'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
 
 headers = {
     'Accepts': 'application/json',
-    'X-CMC_Pro_API_Key': creds.cap_api_key
+    'X-CMC_Pro_API_Key': cap_api_key
 }
 
 parameters = {
@@ -51,7 +53,8 @@ def extract() -> list:
                     market_cap.append(response_json['data'])
                     break
                 else:
-                    logger.warning(f'Error code {response.status_code} in coinmarketcap for coin {coin}: {response.reason}')
+                    logger.warning(f'Error code {response.status_code} in coinmarketcap '
+                                   f'for coin {coin}: {response.reason}')
             except Timeout:
                 logger.warning(f'Timeout error in coinmarketcap api call on coin: {coin}')
         else:

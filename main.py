@@ -1,7 +1,6 @@
 import requests
 from requests.exceptions import Timeout
 import pandas as pd
-import creds
 import coins
 from datetime import date, timedelta
 import uuid
@@ -10,6 +9,7 @@ import logging
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 from snowflake.connector.errors import OperationalError, ProgrammingError
+import os
 
 # Logging setup
 
@@ -39,6 +39,7 @@ def extract() -> list:
     # This response does not return the coin and currency, so the coin gets added into the exchange_rates list object.
     # The currency gets taken care of during the make_df function. This is because I only care about USD.
     # The coin api only allows 100 requests daily in the free tier.
+    api_key = os.environ['api_key']
 
     exchange_rates = []
 
@@ -48,7 +49,7 @@ def extract() -> list:
         # The output returns midnight of yesterday to 11:59pm of that same day.
         url = f'https://rest.coinapi.io/v1/exchangerate/{coin}/USD/history?period_id=1DAY&time_start={yesterday}' \
               f'T00:00:00&time_end={today}T00:00:00'
-        headers = {'X-CoinAPI-Key': creds.api_key}
+        headers = {'X-CoinAPI-Key': api_key}
         for i in range(3):
             # Get data for the coin up top 3 times.
             try:
@@ -165,14 +166,22 @@ def load():
     df.reset_index(drop=True, inplace=True)
     df.columns = df.columns.str.upper()
 
+    # Snowflake creds
+    snow_user = os.environ['snow_user']
+    snow_password = os.environ['snow_password']
+    snow_account = os.environ['snow_account']
+    snow_warehouse = os.environ['snow_warehouse']
+    snow_database = os.environ['snow_database']
+    snow_schema = os.environ['snow_schema']
+
     # Establish snowflake connection
     cnn = snowflake.connector.connect(
-        user=creds.snow_user,
-        password=creds.snow_password,
-        account=creds.snow_account,
-        warehouse=creds.snow_warehouse,
-        database=creds.snow_database,
-        schema=creds.snow_schema
+        user=snow_user,
+        password=snow_password,
+        account=snow_account,
+        warehouse=snow_warehouse,
+        database=snow_database,
+        schema=snow_schema
     )
 
     try:
