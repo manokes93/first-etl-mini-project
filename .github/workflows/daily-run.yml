@@ -2,7 +2,10 @@ name: Daily Run
 
 on:
   push:
-    - cron: '0 17 * * *' # Runs every day at 5pm utc
+    branches:
+      - main
+  # schedule:
+    # - cron: '0 17 * * *' # Runs every day at 5pm utc
 
 env:
   api_key: ${{ secrets.API_KEY }}
