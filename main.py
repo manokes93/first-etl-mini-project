@@ -39,7 +39,7 @@ def extract() -> list:
     # This response does not return the coin and currency, so the coin gets added into the exchange_rates list object.
     # The currency gets taken care of during the make_df function. This is because I only care about USD.
     # The coin api only allows 100 requests daily in the free tier.
-    api_key = os.environ['api_key']
+    api_key = os.environ['API_KEY']
 
     exchange_rates = []
 
@@ -167,12 +167,12 @@ def load():
     df.columns = df.columns.str.upper()
 
     # Snowflake creds
-    snow_user = os.environ['snow_user']
-    snow_password = os.environ['snow_password']
-    snow_account = os.environ['snow_account']
-    snow_warehouse = os.environ['snow_warehouse']
-    snow_database = os.environ['snow_database']
-    snow_schema = os.environ['snow_schema']
+    snow_user = os.environ['SNOW_USER']
+    snow_password = os.environ['SNOW_PASSWORD']
+    snow_account = os.environ['SNOW_ACCOUNT']
+    snow_warehouse = os.environ['SNOW_WAREHOUSE']
+    snow_database = os.environ['SNOW_DATABASE']
+    snow_schema = os.environ['SNOW_SCHEMA']
 
     # Establish snowflake connection
     cnn = snowflake.connector.connect(

@@ -8,14 +8,14 @@ on:
     # - cron: '0 17 * * *' # Runs every day at 5pm utc
 
 env:
-  api_key: ${{ secrets.API_KEY }}
-  cap_api_key: ${{ secrets.CAP_API_KEY }}
-  snow_user: ${{ secrets.SNOW_USER }}
-  snow_password: ${{ secrets.SNOW_PASSWORD }}
-  snow_account: ${{ secrets.SNOW_ACCOUNT }}
-  snow_warehouse: ${{ secrets.SNOW_WAREHOUSE }}
-  snow_database: ${{ secrets.SNOW_DATABASE }}
-  snow_schema: ${{ secrets.SNOW_SCHEMA }}
+  API_KEY: ${{ secrets.API_KEY }}
+  CAP_API_KEY: ${{ secrets.CAP_API_KEY }}
+  SNOW_USER: ${{ secrets.SNOW_USER }}
+  SNOW_PASSWORD: ${{ secrets.SNOW_PASSWORD }}
+  SNOW_ACCOUNT: ${{ secrets.SNOW_ACCOUNT }}
+  SNOW_WAREHOUSE: ${{ secrets.SNOW_WAREHOUSE }}
+  SNOW_DATABASE: ${{ secrets.SNOW_DATABASE }}
+  SNOW_SCHEMA: ${{ secrets.SNOW_SCHEMA }}
 
 jobs:
   build:

@@ -25,7 +25,7 @@ logger.addHandler(stream_handler)
 
 crypto_coins = coins.crypto_coins
 
-cap_api_key = os.environ['cap_api_key']
+cap_api_key = os.environ['CAP_API_KEY']
 
 url = f'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
 
