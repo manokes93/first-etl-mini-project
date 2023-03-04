@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-  # schedule:
-    # - cron: '0 17 * * *' # Runs every day at 5pm utc
+#  schedule:
+#   - cron: '0 17 * * *' # Runs every day at 5pm utc
 
 env:
   API_KEY: ${{ secrets.API_KEY }}
